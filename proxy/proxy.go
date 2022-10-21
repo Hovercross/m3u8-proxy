@@ -32,6 +32,12 @@ func New(base *url.URL) func(http.ResponseWriter, *http.Request) {
 	proxy := httputil.NewSingleHostReverseProxy(base)
 	proxy.ModifyResponse = modifyResponse
 
+	director := proxy.Director
+	proxy.Director = func(r *http.Request) {
+		director(r)
+		r.Host = base.Host
+	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Debug().Msg("handling proxy")
 		proxy.ServeHTTP(w, r)
